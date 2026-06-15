@@ -1,0 +1,58 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "description": "Acesso SOMENTE LEITURA para a consultoria Samax: custos, inventario de recursos e metricas de consumo. Usa apenas roles built-in da Microsoft (sem permissoes de escrita, delete ou acesso a conteudo de Storage/dados)."
+  },
+  "parameters": {
+    "consultantObjectId": {
+      "type": "string",
+      "metadata": {
+        "description": "Object ID (do Entra ID) do usuario de consultoria criado no Passo 1. Obtenha em Entra ID > Usuarios > [usuario] > Object ID."
+      }
+    }
+  },
+  "variables": {
+    "roleReader": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions','acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
+    "roleCost": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions','72fafb9e-0641-4937-9268-a91bfd8191a3')]",
+    "roleMonitor": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions','43d0d8ad-25c7-4714-9337-8ba259a9fe05')]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "name": "[guid(subscription().id, parameters('consultantObjectId'), 'reader')]",
+      "properties": {
+        "roleDefinitionId": "[variables('roleReader')]",
+        "principalId": "[parameters('consultantObjectId')]",
+        "principalType": "User"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "name": "[guid(subscription().id, parameters('consultantObjectId'), 'cost')]",
+      "properties": {
+        "roleDefinitionId": "[variables('roleCost')]",
+        "principalId": "[parameters('consultantObjectId')]",
+        "principalType": "User"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "name": "[guid(subscription().id, parameters('consultantObjectId'), 'monitor')]",
+      "properties": {
+        "roleDefinitionId": "[variables('roleMonitor')]",
+        "principalId": "[parameters('consultantObjectId')]",
+        "principalType": "User"
+      }
+    }
+  ],
+  "outputs": {
+    "resumo": {
+      "type": "string",
+      "value": "[concat('Acesso READ-ONLY concedido ao objectId ', parameters('consultantObjectId'), ' na subscription ', subscription().displayName)]"
+    }
+  }
+}
